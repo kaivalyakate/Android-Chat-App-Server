@@ -196,26 +196,33 @@ public class ChatProvider extends ContentProvider {
                  *
                  * First, query for the specific peer record.
                  */
-                String selection = PeerContract.NAME + "=?";
-                String[] selectionArgs = new String[]{ values.getAsString(PeerContract.NAME) };
-                Cursor cursor = query(uri, null, selection, selectionArgs, null);
-                /*
-                 * Now, check if the cursor is non-empty.  If so, update with recent info.
-                 * Otherwise, insert a new record for this peer.
-                 */
-                long peerId;
-                if (cursor.moveToFirst()) {
-                    peerId = PeerContract.getId(cursor);
-                    selection = PeerContract._ID + "=?";
-                    selectionArgs = new String[]{ Long.toString(peerId) };
-                    db.update(PEERS_TABLE, values, selection, selectionArgs);
-                } else {
-                    peerId = db.insert(PEERS_TABLE, null, values);
+                db.beginTransaction();
+                try{
+                    String selection = PeerContract.NAME + "=?";
+                    String[] selectionArgs = new String[]{ values.getAsString(PeerContract.NAME) };
+                    Cursor cursor = query(uri, null, selection, selectionArgs, null);
+                    /*
+                     * Now, check if the cursor is non-empty.  If so, update with recent info.
+                     * Otherwise, insert a new record for this peer.
+                     */
+                    long peerId;
+                    if (cursor.moveToFirst()) {
+                        peerId = PeerContract.getId(cursor);
+                        selection = PeerContract._ID + "=?";
+                        selectionArgs = new String[]{ Long.toString(peerId) };
+                        db.update(PEERS_TABLE, values, selection, selectionArgs);
+                        db.setTransactionSuccessful();
+                    } else {
+                        peerId = db.insert(PEERS_TABLE, null, values);
+                        db.setTransactionSuccessful();
+                    }
+                    /*
+                     * End by returning the URI for the row (new or not).
+                     */
+                    return PeerContract.CONTENT_URI(peerId);
+                } finally {
+                    db.endTransaction();
                 }
-                /*
-                 * End by returning the URI for the row (new or not).
-                 */
-                return PeerContract.CONTENT_URI(peerId);
 
             default:
                 throw new IllegalStateException("insert: bad case");
@@ -253,7 +260,7 @@ public class ChatProvider extends ContentProvider {
     public int update(Uri uri, ContentValues values, String selection,
                       String[] selectionArgs) {
         throw new UnsupportedOperationException("Update not implemented");
-    }
+    } 
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {

@@ -70,8 +70,8 @@ public class ViewPeerActivity extends FragmentActivity implements LoaderManager.
 
         // TODO use SimpleCursorAdapter (with flags=0 and null initial cursor) to display the messages received.
         // You can use android.R.simple_list_item_1 as layout for each row.
-        String from[] = new String[]{MessageContract.MESSAGE_TEXT};
-        int to[] = new int[]{android.R.id.text1};
+        String[] from = new String[]{MessageContract.MESSAGE_TEXT};
+        int[] to = new int[]{android.R.id.text1};
         messagesAdapter = new SimpleCursorAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, null, from, to, 0);
         messageList = findViewById(R.id.message_list);
         messageList.setAdapter(messagesAdapter);
